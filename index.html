@@ -8,26 +8,50 @@
   </head>
   <body>
     <main class="app">
-      <h1>数独游戏</h1>
-      <p class="subtitle">点击空格输入 1-9，完成整盘挑战。</p>
+      <section class="panel game-panel">
+        <header class="hero">
+          <h1>数独挑战</h1>
+          <p class="subtitle">更像主流游戏的布局：更清晰、更沉浸、记录可追踪。</p>
+        </header>
 
-      <section class="controls">
-        <button id="new-game">新游戏</button>
-        <button id="check">检查答案</button>
-        <button id="solve">显示答案</button>
-        <label>
-          难度
-          <select id="difficulty">
-            <option value="easy">简单</option>
-            <option value="medium" selected>中等</option>
-            <option value="hard">困难</option>
-          </select>
-        </label>
+        <section class="controls">
+          <button id="new-game">新游戏</button>
+          <button id="check">检查答案</button>
+          <button id="solve">显示答案</button>
+          <label>
+            难度
+            <select id="difficulty">
+              <option value="easy">简单</option>
+              <option value="medium" selected>中等</option>
+              <option value="hard">困难</option>
+            </select>
+          </label>
+        </section>
+
+        <section class="meta">
+          <div class="meta-item">
+            <span>本局用时</span>
+            <strong id="timer">00:00</strong>
+          </div>
+          <div class="meta-item">
+            <span>当前难度</span>
+            <strong id="current-difficulty">中等</strong>
+          </div>
+        </section>
+
+        <section class="status" id="status">祝你玩得开心！</section>
+
+        <div id="board" class="board" aria-label="数独棋盘"></div>
       </section>
 
-      <section class="status" id="status">祝你玩得开心！</section>
-
-      <div id="board" class="board" aria-label="数独棋盘"></div>
+      <aside class="panel record-panel">
+        <div class="record-header">
+          <h2>对局记录</h2>
+          <button id="clear-records" class="ghost">清空</button>
+        </div>
+        <p class="record-tip">本地缓存保存最近 12 局，刷新页面不会丢失。</p>
+        <ul id="record-list" class="record-list"></ul>
+      </aside>
     </main>
 
     <script src="script.js"></script>
