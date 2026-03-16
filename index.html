@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>数独游戏</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <h1>数独游戏</h1>
+      <p class="subtitle">点击空格输入 1-9，完成整盘挑战。</p>
+
+      <section class="controls">
+        <button id="new-game">新游戏</button>
+        <button id="check">检查答案</button>
+        <button id="solve">显示答案</button>
+        <label>
+          难度
+          <select id="difficulty">
+            <option value="easy">简单</option>
+            <option value="medium" selected>中等</option>
+            <option value="hard">困难</option>
+          </select>
+        </label>
+      </section>
+
+      <section class="status" id="status">祝你玩得开心！</section>
+
+      <div id="board" class="board" aria-label="数独棋盘"></div>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
