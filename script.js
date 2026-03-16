@@ -4,6 +4,10 @@ const newGameBtn = document.getElementById("new-game");
 const checkBtn = document.getElementById("check");
 const solveBtn = document.getElementById("solve");
 const difficultySelect = document.getElementById("difficulty");
+const timerEl = document.getElementById("timer");
+const currentDifficultyEl = document.getElementById("current-difficulty");
+const recordListEl = document.getElementById("record-list");
+const clearRecordsBtn = document.getElementById("clear-records");
 
 const REMOVE_COUNTS = {
   easy: 38,
@@ -11,8 +15,19 @@ const REMOVE_COUNTS = {
   hard: 54
 };
 
+const DIFFICULTY_TEXT = {
+  easy: "简单",
+  medium: "中等",
+  hard: "困难"
+};
+
+const RECORDS_KEY = "sudoku_records_v1";
+const MAX_RECORDS = 12;
+
 let solution = [];
 let puzzle = [];
+let startTimestamp = Date.now();
+let timerId = null;
 
 function createEmptyGrid() {
   return Array.from({ length: 9 }, () => Array(9).fill(0));
@@ -81,6 +96,27 @@ function makePuzzle(full, removeCount) {
   return game;
 }
 
+function formatDuration(totalSeconds) {
+  const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+  const seconds = String(totalSeconds % 60).padStart(2, "0");
+  return `${minutes}:${seconds}`;
+}
+
+function getElapsedSeconds() {
+  return Math.floor((Date.now() - startTimestamp) / 1000);
+}
+
+function updateTimer() {
+  timerEl.textContent = formatDuration(getElapsedSeconds());
+}
+
+function startTimer() {
+  clearInterval(timerId);
+  startTimestamp = Date.now();
+  updateTimer();
+  timerId = setInterval(updateTimer, 1000);
+}
+
 function renderBoard() {
   boardEl.innerHTML = "";
   for (let row = 0; row < 9; row += 1) {
@@ -119,8 +155,55 @@ function getCurrentGrid() {
   return grid;
 }
 
+function loadRecords() {
+  try {
+    return JSON.parse(localStorage.getItem(RECORDS_KEY) ?? "[]");
+  } catch {
+    return [];
+  }
+}
+
+function saveRecords(records) {
+  localStorage.setItem(RECORDS_KEY, JSON.stringify(records));
+}
+
+function renderRecords() {
+  const records = loadRecords();
+  recordListEl.innerHTML = "";
+
+  if (records.length === 0) {
+    const empty = document.createElement("li");
+    empty.className = "empty-tip";
+    empty.textContent = "暂无记录，完成一局后会出现在这里。";
+    recordListEl.appendChild(empty);
+    return;
+  }
+
+  records.forEach((record) => {
+    const item = document.createElement("li");
+    item.className = "record-item";
+    item.innerHTML = `
+      <div><strong>${record.result}</strong> · ${DIFFICULTY_TEXT[record.difficulty]}</div>
+      <div>用时 ${record.time} · ${record.date}</div>
+    `;
+    recordListEl.appendChild(item);
+  });
+}
+
+function addRecord(result) {
+  const now = new Date();
+  const records = loadRecords();
+  records.unshift({
+    date: now.toLocaleString("zh-CN", { hour12: false }),
+    difficulty: difficultySelect.value,
+    time: formatDuration(getElapsedSeconds()),
+    result
+  });
+  saveRecords(records.slice(0, MAX_RECORDS));
+  renderRecords();
+}
+
 function checkBoard() {
-  const current = getCurrentGrid();
   let complete = true;
   let errors = 0;
 
@@ -143,7 +226,9 @@ function checkBoard() {
   });
 
   if (complete && errors === 0) {
-    statusEl.textContent = "🎉 恭喜你，数独完成！";
+    clearInterval(timerId);
+    statusEl.textContent = "🎉 恭喜你，数独完成！记录已保存。";
+    addRecord("通关");
   } else if (errors > 0) {
     statusEl.textContent = `有 ${errors} 个格子不正确，再试试！`;
   } else {
@@ -158,7 +243,9 @@ function showSolution() {
     cell.value = solution[row][col];
     cell.classList.remove("error");
   });
-  statusEl.textContent = "已显示答案，你可以再开一局。";
+  clearInterval(timerId);
+  statusEl.textContent = "已显示答案，本局已记为未完成。";
+  addRecord("未完成");
 }
 
 function startGame() {
@@ -168,13 +255,22 @@ function startGame() {
   const removeCount = REMOVE_COUNTS[difficultySelect.value] ?? REMOVE_COUNTS.medium;
   puzzle = makePuzzle(full, removeCount);
   renderBoard();
+  currentDifficultyEl.textContent = DIFFICULTY_TEXT[difficultySelect.value];
   statusEl.textContent = "新的一局开始了！";
+  startTimer();
 }
 
 newGameBtn.addEventListener("click", startGame);
 checkBtn.addEventListener("click", checkBoard);
 solveBtn.addEventListener("click", showSolution);
 
+clearRecordsBtn.addEventListener("click", () => {
+  localStorage.removeItem(RECORDS_KEY);
+  renderRecords();
+  statusEl.textContent = "记录已清空。";
+});
+
 difficultySelect.addEventListener("change", startGame);
 
+renderRecords();
 startGame();
